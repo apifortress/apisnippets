@@ -1,0 +1,1 @@
+* 0,30 * * * root cd /apisnippets && ./pull_and_trigger.sh
