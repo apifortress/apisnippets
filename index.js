@@ -6,6 +6,7 @@ const converter     = new showdown.Converter ();
 
 
 let index_hash      = { };
+let search_index    = [ ];
 let loaded_index    = null;
 
 
@@ -33,6 +34,10 @@ const read_dir_routine = (path, name) => {
                     if (error === null) {
                         try {
                             result_obj.tags = JSON.parse (data);
+                            search_index.push ({
+                                id: result_obj.id,
+                                tags: result_obj.tags
+                            })
                         } catch (e) { }
                         resolve (result_obj)
                     } else 
@@ -94,6 +99,7 @@ const create_index = () => {
                 read_dir_routine (config.snippetsPath, config.snippetsPath).then ((result) => {
                     result_object.index = index_hash;
                     result_object.list = result.items;
+                    result_object.search = search_index;
                     fs.writeFile (config.cacheFile, JSON.stringify (result_object), (error) => {
                         index_hash      = { };
                         loaded_index    = null;
@@ -145,7 +151,7 @@ const retrieve_index = () => {
     return new Promise ((resolve, reject) => {
         load_index().then ((result) => {
             if (result.success)
-                resolve ({ list: result.data.list });
+                resolve ({ list: result.data.list, search: result.data.search });
             else
                 resolve ({ list: [] })
         })
@@ -251,19 +257,19 @@ app.use (function (req, res, next) {
     next ();
 });
 
-app.get ('/createIndex', (req, res) => {
+app.get ('/snippets/createIndex', (req, res) => {
     create_index ().then ((r) => {
         res.json (r)
     })
 });
 
-app.get ('/index', (req, res) => {
+app.get ('/snippets/index', (req, res) => {
     retrieve_index ().then ((r) => {
         res.json (r)
     })
 });
 
-app.get ('/snippet', (req, res) => {
+app.get ('/snippets/snippet', (req, res) => {
     get_snippet (req.query.id).then ((r) => {
         res.json (r)
     })
